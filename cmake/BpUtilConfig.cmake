@@ -8,7 +8,7 @@
 set(BPUTIL_INSTALL_PREFIX "/usr/local")
 set(CMAKECONFIG_INSTALL_DIR "lib/cmake/bputil")
 
-find_path(BPUTIL_INCLUDE_DIR ${BPUTIL_INSTALL_PREFIX}/binelpro/symbol.hpp PATH_SUFFIXES dcm )
+find_path(BPUTIL_INCLUDE_DIR ${BPUTIL_INSTALL_PREFIX}/binelpro/symbol.hpp PATH_SUFFIXES binelpro )
 
 include(${BPUTIL_INSTALL_PREFIX}/${CMAKECONFIG_INSTALL_DIR}/ExtLibs.cmake)
 
