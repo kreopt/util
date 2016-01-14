@@ -2,9 +2,9 @@ cmake_minimum_required(VERSION 3.2)
 project(bputil)
 include(cmake/ExtLibs.cmake)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
 
-set(SOURCE_FILES include/symbol.hpp include/os.hpp include/log.hpp src/util.cpp)
+set(SOURCE_FILES include/symbol.hpp include/os.hpp include/log.hpp src/util.cpp include/util.hpp)
 add_library(bputil SHARED ${SOURCE_FILES})
 
 set(CMAKECONFIG_INSTALL_DIR "lib/cmake/bputil")

@@ -7,8 +7,8 @@
 #include <process.h>
 #endif
 
-uint64_t bp::symbol(const std::string &str) {
-    return (!str.c_str() ? 0 : symbol_recursive(5381, str.c_str()));
+bp::symbol_t bp::symbol(const std::string &str) {
+    return symbol(str.c_str());
 }
 
 uint32_t bp::getmypid() {
