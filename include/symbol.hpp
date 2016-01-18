@@ -23,6 +23,7 @@ namespace bp {
         const char* name= nullptr;
         // TODO: copy name dynamically?
         constexpr symbol_t(const char* _name) : name(_name), hash(symbol_recursive(5381, _name)) {}
+        constexpr symbol_t(hash_type _hash) : hash(_hash), name("") {}
 
         inline constexpr operator hash_type(){ return hash;}
         inline constexpr operator const char*(){ return name;}

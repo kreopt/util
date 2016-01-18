@@ -26,6 +26,9 @@ namespace bp {
                 case log_type::info:BOOST_LOG_TRIVIAL(info) << _s;break;
                 case log_type::error:BOOST_LOG_TRIVIAL(error) << _s;break;
             }
+#elif defined(LOG_STD_COUT)
+
+            std::cout << _s << std::endl;
 #endif
         }
 
