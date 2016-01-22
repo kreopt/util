@@ -12,6 +12,7 @@ namespace bp {
 
     namespace {
         using _hash_type = uint64_t ;
+        const _hash_type HASH_INITIALIZER = 5381;
         constexpr _hash_type symbol_recursive(unsigned int hash, const char *str) {
             return (!*str ? hash : symbol_recursive(((hash << 5) + hash) + *str, str + 1));
         }
@@ -20,25 +21,27 @@ namespace bp {
     struct symbol_t {
         using hash_type = _hash_type ;
         const hash_type hash = 0;
-        const char* name= nullptr;
-        // TODO: copy name dynamically?
-        constexpr symbol_t(const char* _name) : name(_name), hash(symbol_recursive(5381, _name)) {}
-        constexpr symbol_t(hash_type _hash) : hash(_hash), name("") {}
+        const std::string name= nullptr;
+        symbol_t(const char* _name) : hash(symbol_recursive(HASH_INITIALIZER, _name)), name(_name) {}
+        symbol_t(hash_type _hash) : hash(_hash), name("") {}
+        symbol_t(const symbol_t& _sym) : hash(_sym.hash), name(_sym.name) {}
+        symbol_t(symbol_t&& _sym) : hash(std::move(_sym.hash)), name(std::move(_sym.name)) {}
 
-        inline constexpr operator hash_type(){ return hash;}
-        inline constexpr operator const char*(){ return name;}
-        inline constexpr bool valid() { return hash!=0; }
+        inline operator hash_type(){ return hash;}
+        inline operator const char*(){ return name.c_str();}
+        inline operator const std::string(){ return name;}
+        inline bool valid() { return hash!=HASH_INITIALIZER; }
 
     };
 
-    inline constexpr bool operator==(const symbol_t &_s1, const symbol_t &_s2){return _s1.hash==_s2.hash;}
+    inline bool operator==(const symbol_t &_s1, const symbol_t &_s2){return _s1.hash==_s2.hash;}
 
-    constexpr symbol_t symbol(const char *str) {
+    symbol_t symbol(const char *str) {
         return symbol_t(str);
     }
 
     namespace literals {
-        symbol_t constexpr operator ""_sym(const char *s, size_t) {
+        symbol_t operator ""_sym(const char *s, size_t) {
             return symbol(s);
         }
     }
