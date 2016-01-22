@@ -7,9 +7,6 @@
 #include <iostream>
 
 namespace bp {
-    // TODO: store string info in type
-    // using symbol_t = uint64_t ;
-
     namespace {
         using _hash_type = uint64_t ;
         const _hash_type HASH_INITIALIZER = 5381;
@@ -18,42 +15,38 @@ namespace bp {
         }
     }
 
-    struct symbol_t {
+    struct symbol {
         using hash_type = _hash_type ;
         const hash_type hash = 0;
         const std::string name= nullptr;
-        symbol_t(const char* _name) : hash(symbol_recursive(HASH_INITIALIZER, _name)), name(_name) {}
-        symbol_t(hash_type _hash) : hash(_hash), name("") {}
-        symbol_t(const symbol_t& _sym) : hash(_sym.hash), name(_sym.name) {}
-        symbol_t(symbol_t&& _sym) : hash(std::move(_sym.hash)), name(std::move(_sym.name)) {}
+        symbol(const char* _name) : hash(symbol_recursive(HASH_INITIALIZER, _name)), name(_name) {}
+        symbol(const std::string &_name) : symbol(_name.c_str()){}
+        symbol(hash_type _hash, const char* name="") : hash(_hash), name(name) {}
+        symbol(const symbol & _sym) : hash(_sym.hash), name(_sym.name) {}
+        symbol(symbol && _sym) : hash(std::move(_sym.hash)), name(std::move(_sym.name)) {}
 
-        inline operator hash_type(){ return hash;}
-        inline operator const char*(){ return name.c_str();}
-        inline operator const std::string(){ return name;}
-        inline bool valid() { return hash!=HASH_INITIALIZER; }
+        inline operator hash_type() const { return hash;}
+        inline operator const char*() const { return name.c_str();}
+        inline operator const std::string() const { return name;}
+        inline bool valid() const { return hash!=HASH_INITIALIZER; }
 
     };
 
-    inline bool operator==(const symbol_t &_s1, const symbol_t &_s2){return _s1.hash==_s2.hash;}
-
-    symbol_t symbol(const char *str) {
-        return symbol_t(str);
-    }
+    inline bool operator==(const symbol &_s1, const symbol &_s2){return _s1.hash == _s2.hash;}
 
     namespace literals {
-        symbol_t operator ""_sym(const char *s, size_t) {
-            return symbol(s);
+        inline symbol operator ""_sym(const char *s, size_t) {return bp::symbol(s);};
+        symbol::hash_type constexpr operator ""_hash(const char *s, size_t) {
+            return symbol_recursive(HASH_INITIALIZER, s);
         }
     }
-
-    extern symbol_t symbol(const std::string &str);
 }
 
 namespace std {
     template <>
-    struct hash<bp::symbol_t>
+    struct hash<bp::symbol>
     {
-        std::size_t operator()(const bp::symbol_t& k) const
+        std::size_t operator()(const bp::symbol & k) const
         {
             return k.hash;
         }

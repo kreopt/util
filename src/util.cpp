@@ -7,10 +7,6 @@
 #include <process.h>
 #endif
 
-bp::symbol_t bp::symbol(const std::string &str) {
-    return symbol(str.c_str());
-}
-
 uint32_t bp::getmypid() {
 #if defined(__linux__) || defined(__APPLE__)
     return getpid();
