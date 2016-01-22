@@ -18,7 +18,7 @@ namespace bp {
     struct symbol {
         using hash_type = _hash_type ;
         const hash_type hash = 0;
-        const std::string name= nullptr;
+        const std::string name;
         symbol(const char* _name) : hash(symbol_recursive(HASH_INITIALIZER, _name)), name(_name) {}
         symbol(const std::string &_name) : symbol(_name.c_str()){}
         symbol(hash_type _hash, const char* name="") : hash(_hash), name(name) {}
