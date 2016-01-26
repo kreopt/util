@@ -4,7 +4,7 @@ include(cmake/ExtLibs.cmake)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
 
-set(SOURCE_FILES include/symbol.hpp include/os.hpp include/log.hpp src/util.cpp include/util.hpp)
+set(SOURCE_FILES include/symbol.hpp include/os.hpp include/log.hpp src/util.cpp include/util.hpp include/background_process.hpp)
 add_library(bputil SHARED ${SOURCE_FILES})
 
 set(CMAKECONFIG_INSTALL_DIR "lib/cmake/bputil")
