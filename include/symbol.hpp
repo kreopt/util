@@ -38,6 +38,8 @@ namespace bp {
         }
     };
 
+    constexpr symbol::hash_type hash(const char* _str) { return symbol_recursive(HASH_INITIALIZER, _str); };
+
     inline bool operator==(const symbol &_s1, const symbol &_s2){return _s1.hash == _s2.hash;}
 
     namespace literals {
