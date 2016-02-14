@@ -65,21 +65,22 @@ namespace bp {
         }
 
         virtual void thread_func() override final {
-            item_type buf;
-            {
-                std::unique_lock<std::mutex> lck(queue_mutex_);
-                if (!queue_.size()) {
-                    queue_cv_.wait(lck, [this]() { return notified_; });
-                }
-                if (!running()) {
-                    return;
-                }
-                std::swap(queue_.front(), buf);
-                queue_.pop_front();
+            std::unique_lock<std::mutex> lck(queue_mutex_);
+            if (!queue_.size()) {
+                queue_cv_.wait(lck, [this]() { return notified_; });
+            }
+            if (!running()) {
+                return;
+            }
+            notified_=false;
+            auto &buf = queue_.front();
+            lck.unlock();
+            if (queue_func(buf)) {
+                lck.lock();
                 current_size_ -= get_item_size(buf);
+                queue_.pop_front();
                 notified_=false;
             }
-            queue_func(std::move(buf));
         }
 
     public:
@@ -87,7 +88,7 @@ namespace bp {
         explicit processing_queue(size_t _queue_size): max_size_(_queue_size), current_size_(0), notified_(false) {
         }
 
-        virtual void queue_func(item_type && _item) = 0;
+        virtual bool queue_func(item_type & _item) = 0;
 
         virtual void stop() override {
             background_loop::stop();
