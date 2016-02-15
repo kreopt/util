@@ -102,7 +102,7 @@ namespace bp {
         }
         void enqueue(item_type &&_buf) {
             auto buf_size = get_item_size(_buf);
-            if (current_size_+buf_size < max_size_) {
+            if ((current_size_+buf_size < max_size_) || !max_size_) {
                 std::unique_lock<std::mutex> lck(queue_mutex_);
                 current_size_ += buf_size;
                 queue_.emplace_back(std::forward<item_type>(_buf));
