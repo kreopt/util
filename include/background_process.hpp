@@ -96,7 +96,7 @@ namespace bp {
             queue_cv_.notify_all();
         }
 
-        void start() {
+        virtual void start() override {
             notified_ = false;
             background_loop::start();
         }
