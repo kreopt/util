@@ -7,7 +7,7 @@
 #include <process.h>
 #endif
 
-uint32_t bp::getmypid() {
+const uint32_t bp::getmypid() {
 #if defined(__linux__) || defined(__APPLE__)
     return getpid();
 #elif defined(_WIN32)

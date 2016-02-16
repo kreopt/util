@@ -12,12 +12,15 @@
 
 namespace bp {
     class Log {
-        enum class log_type {
-            debug,
-            warn,
-            info,
-            error
+        enum class log_type: uint {
+            none = 0,
+            error = 1,
+            info = 2,
+            warn = 3,
+            debug =4,
         };
+
+
         inline static void _log(const char *_s, log_type _type) {
 #ifdef USE_BOOST_LOG
             switch (_type) {
@@ -26,18 +29,26 @@ namespace bp {
                 case log_type::info:BOOST_LOG_TRIVIAL(info) << _s;break;
                 case log_type::error:BOOST_LOG_TRIVIAL(error) << _s;break;
             }
-#elif defined(LOG_STD_COUT)
+#elif !defined(DISABLE_LOG)
 
             std::cout << _s << std::endl;
 #endif
         }
 
         public:
-
-        inline static void d(const char* _s) {_log(_s, log_type::debug);}
-        inline static void w(const char* _s) {_log(_s, log_type::warn);}
-        inline static void i(const char* _s) {_log(_s, log_type::info);}
-        inline static void e(const char* _s) {_log(_s, log_type::error);}
+// TODO: log levels
+        inline static void d(const char* _s) {
+            _log(_s, log_type::debug);
+        }
+        inline static void w(const char* _s) {
+            _log(_s, log_type::warn);
+        }
+        inline static void i(const char* _s) {
+            _log(_s, log_type::info);
+        }
+        inline static void e(const char* _s) {
+            _log(_s, log_type::error);
+        }
 
         inline static void d(const std::string &_s) { Log::d(_s.c_str());}
         inline static void w(const std::string &_s) { Log::w(_s.c_str());}

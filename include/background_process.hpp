@@ -28,6 +28,7 @@ namespace bp {
     protected:
         virtual void thread_func() = 0;
     public:
+        background_loop(): stopped_(false) {}
         virtual ~background_loop(){
             stop();
             wait_until_stopped();
@@ -47,7 +48,7 @@ namespace bp {
                 background_task_.join();
             }
         }
-        inline bool running() { return !stopped_; }
+        inline bool running() const { return !stopped_; }
     };
 
     template <typename item_type>
@@ -56,7 +57,7 @@ namespace bp {
         std::condition_variable              queue_cv_;
         std::mutex                           queue_mutex_;
         bool                                 notified_;
-        size_t                               max_size_;
+        const size_t                         max_size_;
         std::atomic_ulong                    current_size_;
 
     protected:
@@ -85,10 +86,12 @@ namespace bp {
 
     public:
         processing_queue() = delete;
-        explicit processing_queue(size_t _queue_size): max_size_(_queue_size), current_size_(0), notified_(false) {
+        explicit processing_queue(const size_t _queue_size): notified_(false),
+                                                       max_size_(_queue_size),
+                                                       current_size_(0)  {
         }
 
-        virtual bool queue_func(item_type & _item) = 0;
+        virtual bool queue_func(item_type & _item) = 0; // TODO: non-const reference sucks
 
         virtual void stop() override {
             background_loop::stop();
