@@ -36,7 +36,7 @@ namespace bp {
         inline virtual void start() override {
             stopped_ = false;
             background_task_ = std::thread([this]{
-                while (!stopped_) {
+                while (running()) {
                     thread_func();
                 }
             });
@@ -114,6 +114,10 @@ namespace bp {
             } else {
                 Log::w(std::string("queue is full. dropping buffer"));
             }
+        }
+
+        virtual ~processing_queue(){
+            stop();
         }
     };
 }
