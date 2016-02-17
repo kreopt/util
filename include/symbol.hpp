@@ -37,14 +37,18 @@ namespace bp {
         }
 
         bp::symbol& operator=(const bp::symbol& _sym) {
-            this->hash_ = _sym.hash_;
-            this->name_ = _sym.name_;
+            if (&_sym != this) {
+                this->hash_ = _sym.hash_;
+                this->name_ = _sym.name_;
+            }
             return *this;
         }
 
         bp::symbol& operator=(bp::symbol&& _sym) {
             this->hash_ = std::move(_sym.hash_);
             this->name_ = std::move(_sym.name_);
+            _sym.hash_ = 0;
+            _sym.name_ = "";
             return *this;
         }
 
