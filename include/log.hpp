@@ -34,6 +34,7 @@ namespace bp {
             switch (_type) {
                 case log_type::error:
                     std::cerr <<"["<< static_cast<char>(_type) <<"] "<< _s << std::endl;
+                    break;
                 default:
                     std::cout <<"["<< static_cast<char>(_type) <<"] "<< _s << std::endl;
             }
