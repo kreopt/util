@@ -130,7 +130,16 @@ namespace bp {
         }
         void stop_on_queue_end() {
             std::lock_guard<std::mutex> lck(queue_mutex_);
-            stop_on_queue_end_=true;
+            if (!queue_.size()) {
+                stop();
+            } else {
+                stop_on_queue_end_=true;
+            }
+        }
+
+        void flush() {
+            std::lock_guard<std::mutex> lck(queue_mutex_);
+            queue_.clear();
         }
 
         virtual ~processing_queue(){
