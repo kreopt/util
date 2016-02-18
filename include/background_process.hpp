@@ -34,6 +34,7 @@ namespace bp {
             wait_until_stopped();
         }
         inline virtual void start() override {
+            std::lock_guard<std::mutex>  lck(stop_mutex_);
             stopped_ = false;
             background_task_ = std::thread([this]{
                 while (running()) {
@@ -59,6 +60,7 @@ namespace bp {
         bool                                 notified_;
         const size_t                         max_size_;
         std::atomic_ulong                    current_size_;
+        std::atomic_bool                     stop_on_queue_end_;
 
     protected:
         virtual size_t  get_item_size(const item_type &buf) const {
@@ -68,6 +70,10 @@ namespace bp {
         virtual void thread_func() override final {
             std::unique_lock<std::mutex> lck(queue_mutex_);
             if (!queue_.size()) {
+                if (stop_on_queue_end_ && running()) {
+                    stop();
+                    return;
+                }
                 queue_cv_.wait(lck, [this]() { return notified_; });
             }
             if (!running()) {
@@ -80,6 +86,11 @@ namespace bp {
                 lck.lock();
                 current_size_ -= get_item_size(buf);
                 queue_.pop_front();
+                if (!queue_.size()) {
+                    if (stop_on_queue_end_ && running()) {
+                        stop();
+                    }
+                }
                 notified_=false;
             }
         }
@@ -87,8 +98,10 @@ namespace bp {
     public:
         processing_queue() = delete;
         explicit processing_queue(const size_t _queue_size): notified_(false),
-                                                       max_size_(_queue_size),
-                                                       current_size_(0)  {
+                                                             max_size_(_queue_size),
+                                                             current_size_(0),
+                                                             stop_on_queue_end_(false)
+        {
         }
 
         virtual bool queue_func(item_type & _item) = 0; // TODO: non-const reference sucks
@@ -114,6 +127,10 @@ namespace bp {
             } else {
                 Log::w(std::string("queue is full. dropping buffer"));
             }
+        }
+        void stop_on_queue_end() {
+            std::lock_guard<std::mutex> lck(queue_mutex_);
+            stop_on_queue_end_=true;
         }
 
         virtual ~processing_queue(){
