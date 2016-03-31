@@ -1,0 +1,10 @@
+Source: libbputil
+Maintainer: Specfogre <specfogre@gmail.com>
+Section: misc
+Priority: optional
+Standards-Version: 3.9.2
+
+Package: libbputil
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Binelpro utility library
