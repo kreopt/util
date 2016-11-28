@@ -8,7 +8,10 @@ set(BPU_VERSION_MINOR 0)
 set(BPU_VERSION_PATCH 0)
 set(BPU_VERSION ${BPU_VERSION_MAJOR}.${BPU_VERSION_MINOR}.${BPU_VERSION_PATCH} )
 
-set(SOURCE_FILES include/symbol.hpp include/os.hpp include/log.hpp src/util.cpp include/util.hpp include/background_process.hpp include/factory.hpp)
+set(SOURCE_FILES include/symbol.hpp include/os.hpp include/log.hpp src/util.cpp src/symbol.cpp include/util.hpp include/background_process.hpp include/factory.hpp)
+
+include_directories(include/)
+
 add_library(${PROJECT_NAME} SHARED ${SOURCE_FILES})
 set_target_properties(${PROJECT_NAME} PROPERTIES VERSION ${BPU_VERSION} SOVERSION ${BPU_VERSION_MAJOR} )
 
