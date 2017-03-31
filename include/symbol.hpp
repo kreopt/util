@@ -4,25 +4,47 @@
 #include <cstdint>
 #include <string>
 #include <cstring>
+#include <map>
 #include "util.hpp"
 
-#if __cpp_constexpr > 201304L
+#if __cpp_constexpr >= 201304L
+#define CPP14_CONSTEXPR
 #include "murmur3.hpp"
 #endif
 
+#include <memory>
+
 namespace bp {
-    using hash_type = uint32_t;
+//    using hash_type = uint32_t;
+
+    class hash_type;
+//    constexpr hash_type hash(const char *_str, const size_t _len = 0);
+    constexpr hash_type hash(const bp::string_view &_str);
+
+    class hash_type {
+    public:
+        using type = uint32_t;
+        explicit constexpr hash_type(type _hash=hash("")):hash_(_hash) {}
+        constexpr hash_type(const hash_type &_hash):hash_(_hash) {}
+        constexpr hash_type& operator=(const hash_type &_hash){hash_=_hash;return *this;}
+
+        constexpr operator type() const { return hash_; }
+
+    private:
+        /*const*/ type hash_;
+    };
+    inline bool operator<(const hash_type &_a, const hash_type &_b) { return static_cast<hash_type::type>(_a)< static_cast<hash_type::type>(_b);}
 
     namespace {
 
-#if __cpp_constexpr > 201304L
-        constexpr symbol murmur3_hash(const char *data, const size_t _len) {
-            return mm3_x86_32(str_view(data, _len), 0x9747b28c);
+#ifdef CPP14_CONSTEXPR
+        constexpr hash_type::type murmur3_hash(const char *data, const size_t _len) {
+            return mm3_x86_32(blocked_string_view(data, _len), 0x9747b28c);
         }
 #else
         // djb2 hash
-        const hash_type HASH_INITIALIZER = 5381;
-        constexpr hash_type djb2_recursive(const unsigned int _hash, const char *_str) {
+        const hash_type::type HASH_INITIALIZER = 5381;
+        constexpr hash_type::type djb2_recursive(const hash_type::type &_hash, const char *_str) {
             return (!*_str ? _hash : djb2_recursive(((_hash << 5) + _hash) + *_str, _str + 1));
         }
 
@@ -31,43 +53,37 @@ namespace bp {
 
     }
 
-    constexpr hash_type hash(const char *_str, const size_t _len = 0){
-#if __cpp_constexpr > 201304L
-        return murmur3_hash(_str, _len?_len:const_length(_str));
+    constexpr hash_type hash(const bp::string_view &_str) {
+#ifdef CPP14_CONSTEXPR
+        return hash_type(murmur3_hash(_str.data(), _str.size()));
 #else
-        return djb2_hash(_str, _len?_len:const_length(_str));
+        return hash_type(djb2_hash(_str.data(), _str.size()));
 #endif
     };
-    hash_type hash(const std::string &_str);;
-
-    class symbol;
-
-    void __define_symbol(const char *_sym);
-    void __define_symbol(std::string &&_s);
-
-    void define_symbols(std::initializer_list<const char*> _l);
-
-    std::string sym_name(const bp::hash_type &_hash);
-//    inline std::string sym_name(symbol _hash){ return sym_name(static_cast<hash_type>(_hash));};
 
     class symbol {
-        hash_type hash_;
+        using sym_map = std::map<bp::hash_type::type, std::string>;
     public:
 
         symbol();
-        explicit symbol(const char* _s, const size_t _len=0);
         symbol(const symbol&) = default;
         symbol(symbol&&) = default;
         symbol& operator=(const symbol& _s) = default;
         symbol& operator=(symbol&& _s) = default;
 
-        symbol(const std::string &_s);
-        symbol(std::string &&_s);
+        symbol(const bp::string_view &_s);
 
-        inline std::string to_string() const { return sym_name(hash_); }
+        inline bp::string_view to_string() const { return symbol::name(hash_); }
         inline bp::hash_type to_hash() const { return hash_; }
         inline explicit operator bp::hash_type () const { return hash_; }
         inline bool operator < (const symbol& _s) { return hash_<_s.hash_; }
+
+        static void define(std::initializer_list<const char*>);
+        static bp::string_view name(const bp::hash_type &_hash);
+
+    private:
+        static std::shared_ptr<sym_map> get_map();
+        hash_type hash_;
     };
 
     template <typename T>
@@ -86,12 +102,6 @@ namespace bp {
     template <typename T>
     using enable_if_hashable_t = typename std::enable_if<bp::is_hashable<typename std::decay<T>::type>::value>::type;
 
-    template <typename T>
-    inline void define_symbol(T) {}
-
-    template <>
-    inline void define_symbol<const char *>(const char *_h);
-
 
     inline bool operator==(const symbol &_s1, const symbol &_s2){return static_cast<hash_type>(_s1) == static_cast<hash_type>(_s2);}
     inline bool operator!=(const symbol &_s1, const symbol &_s2){return static_cast<hash_type>(_s1) != static_cast<hash_type>(_s2);}
@@ -102,7 +112,7 @@ namespace bp {
 
     namespace literals {
         hash_type constexpr operator ""_h(const char *_s, const size_t _len) {
-            return hash(_s, _len);
+            return hash(bp::string_view(_s, _len));
         }
     }
 }
@@ -113,7 +123,16 @@ namespace std {
     {
         std::size_t operator()(const bp::symbol & k) const
         {
-            return static_cast<bp::hash_type>(k);
+            return k.to_hash();
+        }
+    };
+
+    template <>
+    struct hash<bp::hash_type>
+    {
+        std::size_t operator()(const bp::hash_type & k) const
+        {
+            return static_cast<bp::hash_type::type>(k);
         }
     };
 }
